@@ -8,7 +8,7 @@ CCI (Cross-Context Identity) is Demos' universal identity system that:
 
 - **Links Multiple Wallets** - Connect EVM, Solana, TON addresses to one identity
 - **Links Web2 Accounts** - Connect Twitter, GitHub, Discord for social proofs
-- **Privacy-Preserving** - ZK proofs allow verification without revealing identity
+- **Attested Proofs** - Cryptographic attestations verify identity ownership
 - **Cross-Chain** - Single identity works across all supported networks
 
 ## Identity Structure
@@ -25,100 +25,148 @@ CCI (Demos Address)
     └── Discord: user#1234
 ```
 
-## Core Pattern: Linking Wallets
+## Getting Started
 
 ```typescript
 import { Demos } from "@kynesyslabs/demosdk/websdk";
 
-async function linkEVMWallet(evmPrivateKey: string) {
+async function connectIdentity() {
   const demos = new Demos();
   await demos.connect("https://demosnode.discus.sh/");
-  await demos.connectWallet(demosMnemonic);
+  await demos.connectWallet(mnemonic);
   
-  // Get your Demos identity
+  // Your Demos address IS your identity
   const demosAddress = demos.getAddress();
-  console.log("Demos Address:", demosAddress);
+  console.log("Demos Identity:", demosAddress);
   
-  // Link an EVM wallet
+  return demos;
+}
+```
+
+## Linking Blockchain Wallets (XM Identities)
+
+Link external blockchain wallets to your Demos identity using signed attestations.
+
+### Link EVM Wallet
+
+```typescript
+import { Demos } from "@kynesyslabs/demosdk/websdk";
+import { EVM } from "@kynesyslabs/demosdk/xm-websdk";
+
+async function linkEVMWallet(demos: Demos, evmPrivateKey: string) {
+  const demosAddress = demos.getAddress();
+  
+  // 1. Create EVM instance and get address
+  const evm = await EVM.create("https://eth.llamarpc.com");
+  await evm.connectWallet(evmPrivateKey);
+  const evmAddress = evm.getAddress();
+  
+  // 2. Create attestation message
+  const message = `Link ${evmAddress} to Demos identity ${demosAddress}`;
+  
+  // 3. Sign with EVM wallet (proves ownership)
+  const signature = await evm.signMessage(message);
+  
+  // 4. Submit link attestation to Demos
   const result = await demos.identity.addXmIdentity({
     chain: "evm",
     address: evmAddress,
-    signature: await signLinkMessage(evmPrivateKey, demosAddress)
+    message,
+    signature
   });
   
+  await evm.disconnect();
   return result;
 }
-
-// Helper: Sign linking message
-async function signLinkMessage(privateKey: string, demosAddress: string) {
-  const message = `Link to Demos: ${demosAddress}`;
-  // Use EVM SDK to sign
-  const evm = await EVM.create("https://eth.llamarpc.com");
-  await evm.connectWallet(privateKey);
-  return await evm.signMessage(message);
-}
 ```
 
-## ZK Identity (Privacy-Preserving)
-
-For anonymous attestations using zero-knowledge proofs:
+### Link Solana Wallet
 
 ```typescript
-import { ZKIdentity } from "@kynesyslabs/demosdk/encryption";
+import { Solana } from "@kynesyslabs/demosdk/xm-websdk";
 
-async function createPrivateIdentity() {
-  // 1. Create ZK identity from provider ID
-  const identity = new ZKIdentity("github:12345678");
+async function linkSolanaWallet(demos: Demos, solanaPrivateKey: string) {
+  const demosAddress = demos.getAddress();
   
-  // 2. Get commitment (safe to share publicly)
-  const commitment = identity.getCommitment();
-  console.log("Commitment:", commitment);
+  // 1. Create Solana instance
+  const solana = await Solana.create("https://api.mainnet-beta.solana.com");
+  await solana.connectWallet(solanaPrivateKey);
+  const solAddress = solana.getAddress();
   
-  // 3. Submit commitment to Merkle tree
-  const commitmentTx = await identity.createCommitmentTransaction(
-    "https://demosnode.discus.sh/"
-  );
+  // 2. Create and sign attestation
+  const message = `Link ${solAddress} to Demos identity ${demosAddress}`;
+  const signature = await solana.signMessage(message);
   
-  // 4. Later: Create anonymous attestation
-  const attestation = await identity.createAttestationTransaction(
-    "https://demosnode.discus.sh/",
-    "dao_vote_proposal_42"  // Context (one-time use)
-  );
+  // 3. Submit to Demos
+  const result = await demos.identity.addXmIdentity({
+    chain: "solana",
+    address: solAddress,
+    message,
+    signature
+  });
   
-  return { commitment, attestation };
+  await solana.disconnect();
+  return result;
 }
 ```
-
-## ZK Identity Methods
-
-| Method | Purpose |
-|--------|---------|
-| `new ZKIdentity(providerId)` | Create from provider ID |
-| `ZKIdentity.generate(providerId)` | Generate with random secret |
-| `getCommitment()` | Get public commitment hash |
-| `getProvider()` | Get provider name |
-| `getSecret()` | Get secret (KEEP SECURE!) |
-| `createCommitmentTransaction()` | Add to Merkle tree |
-| `createAttestationTransaction()` | Create ZK proof |
-| `export()` | Export for backup |
-| `ZKIdentity.import(data)` | Restore from backup |
-| `ZKIdentity.verifyAttestation()` | Verify proof |
 
 ## Linking Web2 Accounts
 
+Link social accounts using attested proofs (posting verification messages).
+
+### Link Twitter
+
 ```typescript
-async function linkTwitterAccount(demos: Demos) {
-  // 1. Get challenge from node
-  const challenge = await demos.identity.getWeb2Challenge("twitter");
+async function linkTwitter(demos: Demos, twitterHandle: string) {
+  const demosAddress = demos.getAddress();
   
-  // 2. User posts challenge to their Twitter
-  // e.g., "Verifying my Demos identity: abc123xyz"
+  // 1. Get verification challenge
+  const challenge = await demos.identity.getWeb2Challenge({
+    platform: "twitter",
+    handle: twitterHandle
+  });
+  
+  console.log("Post this tweet:", challenge.message);
+  // Example: "Verifying my Demos identity: demos1abc...xyz #DemosNetwork"
+  
+  // 2. User posts the challenge to Twitter
+  // ... user action required ...
   
   // 3. Submit proof (tweet URL)
   const result = await demos.identity.addWeb2Identity({
     platform: "twitter",
+    handle: twitterHandle,
     proof: "https://twitter.com/username/status/123456789",
-    challenge: challenge.id
+    challengeId: challenge.id
+  });
+  
+  return result;
+}
+```
+
+### Link GitHub
+
+```typescript
+async function linkGitHub(demos: Demos, githubUsername: string) {
+  const demosAddress = demos.getAddress();
+  
+  // 1. Get verification challenge
+  const challenge = await demos.identity.getWeb2Challenge({
+    platform: "github",
+    handle: githubUsername
+  });
+  
+  console.log("Create a gist with this content:", challenge.message);
+  
+  // 2. User creates public gist with challenge
+  // ... user action required ...
+  
+  // 3. Submit proof (gist URL)
+  const result = await demos.identity.addWeb2Identity({
+    platform: "github",
+    handle: githubUsername,
+    proof: "https://gist.github.com/username/abc123",
+    challengeId: challenge.id
   });
   
   return result;
@@ -127,9 +175,10 @@ async function linkTwitterAccount(demos: Demos) {
 
 ## Querying Identities
 
+### Get Full Identity
+
 ```typescript
-async function lookupIdentity(demos: Demos, address: string) {
-  // Get all linked identities for a Demos address
+async function getIdentity(demos: Demos, address: string) {
   const identity = await demos.identity.getIdentity(address);
   
   return {
@@ -137,106 +186,105 @@ async function lookupIdentity(demos: Demos, address: string) {
     xmIdentities: identity.xmIdentities.map(xm => ({
       chain: xm.chain,
       address: xm.address,
-      verified: xm.verified
+      verified: xm.verified,
+      linkedAt: xm.timestamp
     })),
     web2Identities: identity.web2Identities.map(w2 => ({
       platform: w2.platform,
       handle: w2.handle,
-      verified: w2.verified
+      verified: w2.verified,
+      linkedAt: w2.timestamp
     }))
   };
 }
+```
 
-// Resolve: Find Demos address from any linked address
-async function resolveAddress(demos: Demos, anyAddress: string) {
+### Resolve Address
+
+Find Demos identity from any linked address:
+
+```typescript
+async function resolveToDemo(demos: Demos, anyAddress: string) {
+  // Works with EVM, Solana, or any linked address
   const result = await demos.identity.resolve(anyAddress);
-  return result.demosAddress;
-}
-```
-
-## Identity Backup & Recovery
-
-```typescript
-// Export ZK identity for backup
-function backupIdentity(identity: ZKIdentity) {
-  const backup = identity.export();
   
-  // IMPORTANT: Encrypt before storing!
-  const encrypted = encryptBackup(backup, userPassword);
-  localStorage.setItem("zk_identity_backup", encrypted);
-  
-  return backup;
-}
-
-// Restore from backup
-function restoreIdentity(encryptedBackup: string, password: string) {
-  const backup = decryptBackup(encryptedBackup, password);
-  return ZKIdentity.import(backup);
-}
-```
-
-## Use Cases
-
-### 1. Sybil-Resistant Voting
-
-```typescript
-async function castAnonymousVote(identity: ZKIdentity, proposalId: string) {
-  // Create attestation (each proposal can only be voted once per identity)
-  const attestation = await identity.createAttestationTransaction(
-    "https://demosnode.discus.sh/",
-    `vote:${proposalId}`  // Nullifier prevents double-voting
-  );
-  
-  // Submit vote with ZK proof
-  const result = await demos.nodeCall("submitVote", {
-    proposalId,
-    vote: "yes",
-    proof: attestation
-  });
+  if (result) {
+    console.log("Demos identity:", result.demosAddress);
+    console.log("Linked addresses:", result.linkedAddresses);
+  }
   
   return result;
 }
 ```
 
-### 2. Cross-Chain Reputation
+### Check Verification Status
+
+```typescript
+async function checkVerification(demos: Demos, demosAddress: string) {
+  const identity = await demos.identity.getIdentity(demosAddress);
+  
+  return {
+    hasVerifiedEVM: identity.xmIdentities.some(
+      xm => xm.chain === "evm" && xm.verified
+    ),
+    hasVerifiedTwitter: identity.web2Identities.some(
+      w2 => w2.platform === "twitter" && w2.verified
+    ),
+    hasVerifiedGitHub: identity.web2Identities.some(
+      w2 => w2.platform === "github" && w2.verified
+    ),
+    totalLinkedWallets: identity.xmIdentities.length,
+    totalLinkedSocials: identity.web2Identities.length
+  };
+}
+```
+
+## Use Cases
+
+### 1. Cross-Chain Reputation
+
+Aggregate reputation from all linked wallets:
 
 ```typescript
 async function getUnifiedReputation(demos: Demos, demosAddress: string) {
   const identity = await demos.identity.getIdentity(demosAddress);
   
   const reputation = {
-    onChain: [],
-    social: []
+    chains: [],
+    totalTxCount: 0,
+    totalValue: 0
   };
   
-  // Aggregate on-chain activity
+  // Aggregate from each linked chain
   for (const xm of identity.xmIdentities) {
-    const activity = await getChainActivity(xm.chain, xm.address);
-    reputation.onChain.push({ chain: xm.chain, ...activity });
-  }
-  
-  // Aggregate social proof
-  for (const w2 of identity.web2Identities) {
-    const social = await getSocialMetrics(w2.platform, w2.handle);
-    reputation.social.push({ platform: w2.platform, ...social });
+    const chainData = await getChainActivity(xm.chain, xm.address);
+    reputation.chains.push({
+      chain: xm.chain,
+      txCount: chainData.txCount,
+      value: chainData.totalValue
+    });
+    reputation.totalTxCount += chainData.txCount;
+    reputation.totalValue += chainData.totalValue;
   }
   
   return reputation;
 }
 ```
 
-### 3. Gated Access
+### 2. Gated Access
+
+Control access based on verified identities:
 
 ```typescript
 async function checkAccess(demos: Demos, demosAddress: string) {
   const identity = await demos.identity.getIdentity(demosAddress);
   
-  // Check if user has verified GitHub
+  // Require verified GitHub for dev tools
   const hasGitHub = identity.web2Identities.some(
     w2 => w2.platform === "github" && w2.verified
   );
   
-  // Check if user has EVM wallet
+  // Require verified EVM wallet for DeFi features
   const hasEVM = identity.xmIdentities.some(
     xm => xm.chain === "evm" && xm.verified
   );
@@ -244,18 +292,31 @@ async function checkAccess(demos: Demos, demosAddress: string) {
   return {
     canAccessDevTools: hasGitHub,
     canAccessDeFi: hasEVM,
-    fullyVerified: hasGitHub && hasEVM
+    canAccessPremium: hasGitHub && hasEVM
   };
 }
 ```
 
-## Security Best Practices
+### 3. Cross-Chain Payments
 
-1. **Never share ZK secrets** - The secret allows creating attestations as you
-2. **Encrypt backups** - Always encrypt identity exports before storage
-3. **Verify signatures** - Always verify linking signatures server-side
-4. **Use HTTPS** - All identity operations should use secure connections
-5. **Rate limit** - Protect identity endpoints from abuse
+Pay to any linked address:
+
+```typescript
+async function payByIdentity(demos: Demos, recipientDemos: string, preferredChain: string) {
+  const identity = await demos.identity.getIdentity(recipientDemos);
+  
+  // Find address on preferred chain
+  const chainIdentity = identity.xmIdentities.find(
+    xm => xm.chain === preferredChain && xm.verified
+  );
+  
+  if (!chainIdentity) {
+    throw new Error(`Recipient has no verified ${preferredChain} address`);
+  }
+  
+  return chainIdentity.address;
+}
+```
 
 ## Error Handling
 
@@ -268,14 +329,33 @@ try {
       console.error("This wallet is already linked to another identity");
       break;
     case "INVALID_SIGNATURE":
-      console.error("Signature verification failed");
+      console.error("Signature verification failed - sign with correct wallet");
       break;
-    case "COMMITMENT_EXISTS":
-      console.error("ZK commitment already in Merkle tree");
+    case "IDENTITY_NOT_FOUND":
+      console.error("No identity found for this address");
       break;
-    case "NULLIFIER_USED":
-      console.error("This attestation context was already used");
+    case "CHALLENGE_EXPIRED":
+      console.error("Verification challenge expired - request new one");
+      break;
+    case "PROOF_INVALID":
+      console.error("Could not verify proof - check URL is correct");
       break;
   }
 }
 ```
+
+## Security Best Practices
+
+1. **Verify signatures server-side** - Don't trust client-side verification alone
+2. **Check attestation timestamps** - Reject old attestations to prevent replay
+3. **Rate limit linking** - Prevent spam identity creation
+4. **Validate proof URLs** - Ensure proofs come from correct platforms
+5. **Use HTTPS** - All identity operations should use secure connections
+
+## Important Notes
+
+> **ESM Required**: Use `.mjs` files or add `"type": "module"` to your package.json.
+
+> **Attestations**: All identity links require cryptographic attestations (signatures or posted proofs).
+
+> **Immutable Links**: Once verified, identity links are recorded on-chain and cannot be removed.
