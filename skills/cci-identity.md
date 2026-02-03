@@ -36,7 +36,7 @@ async function linkEVMWallet(evmPrivateKey: string) {
   await demos.connectWallet(demosMnemonic);
   
   // Get your Demos identity
-  const demosAddress = demos.wallet.getAddress();
+  const demosAddress = demos.getAddress();
   console.log("Demos Address:", demosAddress);
   
   // Link an EVM wallet

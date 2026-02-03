@@ -157,9 +157,9 @@ import {
 
 // Create conditional: if price < threshold, buy
 const priceCondition = new Condition({
-  left: { ref: "priceStep.output.price" },
+  value_a: { ref: "priceStep.output.price" },
   operator: "<",
-  right: { value: 100 }
+  value_b: { value: 100 }
 });
 
 const buyStep = new WorkStep({
