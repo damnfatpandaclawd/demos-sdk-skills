@@ -2,6 +2,8 @@
 
 Learn to create cryptographic proofs of HTTPS requests using MPC-TLS.
 
+> **Browser Only**: TLSNotary requires a browser environment with WebAssembly (WASM) support. It cannot run in Node.js.
+
 ## What is TLSNotary?
 
 TLSNotary enables browser-based attestation of HTTPS requests:
@@ -15,87 +17,57 @@ TLSNotary enables browser-based attestation of HTTPS requests:
 
 | Feature | TLSNotary | DAHR |
 |---------|-----------|------|
-| Runs in | Browser | Demos Node |
+| Runs in | Browser only | Demos Node |
 | Proof type | Full MPC-TLS | Node attestation |
 | Privacy | Selective disclosure | Full request logged |
 | Use case | User-initiated proofs | Agent automation |
 | Setup | More complex | Simple API |
 
 **Use TLSNotary when:**
-- User controls the attestation
+- User controls the attestation in a browser
 - Need selective disclosure (hide sensitive data)
 - Proof must be verifiable offline
 
 **Use DAHR when:**
-- Agent needs automated attestation
+- Agent needs automated attestation (Node.js)
 - Simple API calls
 - Node-attested is sufficient
 
-## Quick Start
+## SDK Service Pattern (v2.9.1+)
+
+The recommended way to use TLSNotary with the Demos SDK:
 
 ```typescript
-import { TLSNotary } from "@kynesyslabs/demosdk/tlsnotary";
+import { Demos } from "@kynesyslabs/demosdk/websdk";
+import { TLSNotaryService } from "@kynesyslabs/demosdk/tlsnotary";
 
-async function quickAttestation() {
-  // 1. Create instance
-  const tlsn = new TLSNotary({
-    notaryUrl: "https://notary.demos.sh",
-    proxyUrl: "wss://proxy.demos.sh"
+async function createAttestation(demos: Demos, targetUrl: string) {
+  // 1. Create service instance
+  const service = new TLSNotaryService(demos);
+  
+  // 2. Request attestation token from network
+  const token = await service.requestAttestation({
+    targetUrl,
+    method: "GET"
   });
   
-  // 2. Initialize WASM (once per page)
-  await tlsn.initialize();
+  console.log("Token received:", token.id);
   
-  // 3. Quick attestation
-  const result = await tlsn.attestQuick({
-    url: "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd"
+  // 3. Perform attestation (browser-based)
+  const result = await service.attest(token, {
+    url: targetUrl,
+    method: "GET",
+    headers: { "Accept": "application/json" }
   });
   
-  console.log("Proof:", result.presentation);
-  console.log("Response:", result.transcript.recv);
+  // 4. Store proof on-chain
+  const stored = await service.storeProof(result.proof, token);
   
-  // 4. Cleanup
-  tlsn.destroy();
-  
-  return result;
-}
-```
-
-## Full Attestation Flow
-
-```typescript
-import { TLSNotary } from "@kynesyslabs/demosdk/tlsnotary";
-
-async function fullAttestation() {
-  const tlsn = new TLSNotary({
-    notaryUrl: "https://notary.demos.sh",
-    proxyUrl: "wss://proxy.demos.sh"
-  });
-  
-  await tlsn.initialize();
-  
-  // Full attestation with options
-  const result = await tlsn.attest(
-    {
-      url: "https://api.example.com/user",
-      method: "GET",
-      headers: {
-        "Authorization": "Bearer secret_token",
-        "Accept": "application/json"
-      }
-    },
-    {
-      // Selective disclosure: hide authorization header
-      sent: [{ start: 0, end: 50 }, { start: 150, end: 300 }],
-      recv: [{ start: 0, end: 1000 }]  // First 1KB of response
-    },
-    (status) => {
-      console.log("Status:", status);  // Progress updates
-    }
-  );
-  
-  tlsn.destroy();
-  return result;
+  return {
+    proof: result.proof,
+    txHash: stored.txHash,
+    responseData: result.transcript.recv
+  };
 }
 ```
 
@@ -104,58 +76,39 @@ async function fullAttestation() {
 Hide sensitive parts of requests while proving the rest:
 
 ```typescript
-async function attestWithPrivacy(tlsn: TLSNotary) {
-  // First, get transcript to see byte ranges
-  const transcript = await tlsn.getTranscript({
+async function attestWithPrivacy(service: TLSNotaryService, token: any) {
+  const result = await service.attest(token, {
     url: "https://api.github.com/user",
     method: "GET",
     headers: { "Authorization": "Bearer ghp_xxxx" }
-  });
-  
-  console.log("Sent bytes:", transcript.sent.length);
-  console.log("Recv bytes:", transcript.recv.length);
-  
-  // Now attest with selective disclosure
-  // Hide the auth token (bytes 100-150 in this example)
-  const result = await tlsn.attest(
-    {
-      url: "https://api.github.com/user",
-      method: "GET",
-      headers: { "Authorization": "Bearer ghp_xxxx" }
-    },
-    {
+  }, {
+    // Selective disclosure options
+    commitRanges: {
       sent: [
         { start: 0, end: 99 },    // Everything before token
         { start: 151, end: 500 }  // Everything after token
       ],
-      recv: [{ start: 0, end: transcript.recv.length }]  // Full response
+      recv: [{ start: 0, end: 2000 }]  // Full response
     }
-  );
+  });
   
   // The proof hides bytes 100-150 (the token)
   return result;
 }
 ```
 
-## Verification
+## Storage Fees
 
-Proofs can be verified offline:
+Storing proofs on-chain requires DEM tokens:
 
 ```typescript
-async function verifyProof(tlsn: TLSNotary, proofJSON: PresentationJSON) {
-  const result = await tlsn.verify(proofJSON);
-  
-  return {
-    serverName: result.serverName,  // Domain the request was made to
-    time: new Date(result.time * 1000),  // Attestation timestamp
-    sent: result.sent,  // Request data (with redactions)
-    recv: result.recv   // Response data (with redactions)
-  };
-}
+import { calculateStorageFee } from "@kynesyslabs/demosdk/tlsnotary";
 
-// Verify saved proof
-const savedProof = JSON.parse(localStorage.getItem("myProof"));
-const verification = await verifyProof(tlsn, savedProof);
+// Calculate fee based on proof size
+const proofSizeKB = 50;  // 50 KB proof
+const fee = calculateStorageFee(proofSizeKB);  // Base + size fee
+
+console.log(`Storage fee: ${fee} DEM`);
 ```
 
 ## Use Cases
@@ -163,128 +116,70 @@ const verification = await verifyProof(tlsn, savedProof);
 ### 1. Prove Account Ownership
 
 ```typescript
-async function proveTwitterAccount(tlsn: TLSNotary, bearerToken: string) {
-  const result = await tlsn.attest(
-    {
-      url: "https://api.twitter.com/2/users/me",
-      method: "GET",
-      headers: {
-        "Authorization": `Bearer ${bearerToken}`
-      }
-    },
-    {
-      // Hide the bearer token in the proof
-      sent: [{ start: 0, end: 80 }, { start: 200, end: 400 }],
-      recv: [{ start: 0, end: 2000 }]  // Show full user response
-    }
-  );
-  
-  return result;
-}
-```
-
-### 2. Prove Financial Data
-
-```typescript
-async function proveBalance(tlsn: TLSNotary, exchangeApiKey: string) {
-  const result = await tlsn.attest(
-    {
-      url: "https://api.exchange.com/v1/account/balance",
-      method: "GET",
-      headers: {
-        "X-API-Key": exchangeApiKey
-      }
-    },
-    {
-      // Hide API key, show response
-      sent: [{ start: 0, end: 50 }],
-      recv: [{ start: 0, end: 5000 }]
-    }
-  );
-  
-  return result;
-}
-```
-
-### 3. Prove Price at Timestamp
-
-```typescript
-async function provePriceAtTime(tlsn: TLSNotary) {
-  const result = await tlsn.attestQuick({
-    url: "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd"
+async function proveTwitterAccount(service: TLSNotaryService, bearerToken: string) {
+  const token = await service.requestAttestation({
+    targetUrl: "https://api.twitter.com/2/users/me",
+    method: "GET"
   });
   
-  // Proof includes timestamp from notary
-  const verification = await tlsn.verify(result.presentation);
-  
-  return {
-    price: JSON.parse(verification.recv).bitcoin.usd,
-    timestamp: verification.time,
-    proof: result.presentation
-  };
-}
-```
-
-## Token Management
-
-For production use, manage attestation tokens:
-
-```typescript
-import { TLSNotaryService } from "@kynesyslabs/demosdk/tlsnotary";
-import { calculateStorageFee } from "@kynesyslabs/demosdk/tlsnotary";
-
-async function manageTokens(demos: Demos) {
-  const service = new TLSNotaryService(demos);
-  
-  // Get token for attestation
-  const token = await service.getToken();
-  
-  // Calculate storage fee for proof
-  const proofSizeKB = 50;  // 50 KB proof
-  const fee = calculateStorageFee(proofSizeKB);  // 1 + 50 = 51 DEM
-  
-  // Store proof on-chain
-  const result = await service.storeProof(proofJSON, token);
+  const result = await service.attest(token, {
+    url: "https://api.twitter.com/2/users/me",
+    method: "GET",
+    headers: { "Authorization": `Bearer ${bearerToken}` }
+  }, {
+    commitRanges: {
+      // Hide the bearer token in the proof
+      sent: [{ start: 0, end: 80 }, { start: 200, end: 400 }],
+      recv: [{ start: 0, end: 2000 }]
+    }
+  });
   
   return result;
 }
 ```
 
-## Configuration
+### 2. Prove Price at Timestamp
 
 ```typescript
-const tlsn = new TLSNotary({
-  notaryUrl: "https://notary.demos.sh",  // Notary server
-  proxyUrl: "wss://proxy.demos.sh",      // WebSocket proxy
-  maxTranscriptSize: 16384,               // Max bytes (optional)
-  timeout: 30000                          // Timeout in ms (optional)
-});
-
-// Update config later
-tlsn.updateConfig({
-  timeout: 60000
-});
-
-// Get current config
-const config = tlsn.getConfig();
+async function provePriceAtTime(service: TLSNotaryService) {
+  const url = "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd";
+  
+  const token = await service.requestAttestation({
+    targetUrl: url,
+    method: "GET"
+  });
+  
+  const result = await service.attest(token, {
+    url,
+    method: "GET",
+    headers: { "Accept": "application/json" }
+  });
+  
+  // Store proof with timestamp
+  const stored = await service.storeProof(result.proof, token);
+  
+  return {
+    price: JSON.parse(result.transcript.recv).bitcoin.usd,
+    timestamp: result.attestationTime,
+    txHash: stored.txHash,
+    proof: result.proof
+  };
+}
 ```
 
 ## Error Handling
 
 ```typescript
 try {
-  await tlsn.initialize();
-  const result = await tlsn.attest(request, commitRanges);
+  const token = await service.requestAttestation({ targetUrl, method: "GET" });
+  const result = await service.attest(token, request);
 } catch (error) {
   switch (error.code) {
-    case "WASM_INIT_FAILED":
-      console.error("Failed to initialize WASM module");
+    case "WASM_NOT_SUPPORTED":
+      console.error("Browser does not support WebAssembly");
       break;
-    case "NOTARY_UNREACHABLE":
-      console.error("Cannot connect to notary server");
-      break;
-    case "PROXY_ERROR":
-      console.error("WebSocket proxy connection failed");
+    case "TOKEN_EXPIRED":
+      console.error("Attestation token expired, request new one");
       break;
     case "ATTESTATION_TIMEOUT":
       console.error("Attestation took too long");
@@ -292,46 +187,67 @@ try {
     case "INVALID_COMMIT_RANGES":
       console.error("Commit ranges are invalid or overlap");
       break;
-    case "TRANSCRIPT_TOO_LARGE":
-      console.error("Response exceeds max transcript size");
+    case "INSUFFICIENT_BALANCE":
+      console.error("Not enough DEM for storage fee");
       break;
     default:
       console.error("TLSNotary error:", error.message);
   }
-} finally {
-  tlsn.destroy();  // Always cleanup
 }
 ```
 
 ## Best Practices
 
-1. **Initialize once** - Call `initialize()` once per page load
-2. **Always destroy** - Call `destroy()` when done to free resources
-3. **Plan commit ranges** - Use `getTranscript()` first to plan selective disclosure
-4. **Handle timeouts** - Some APIs are slow, increase timeout if needed
-5. **Verify locally** - Test proof verification before sharing
-6. **Store proofs securely** - Proofs contain request data (even redacted)
+1. **Browser only** - TLSNotary cannot run in Node.js (WASM requirement)
+2. **Request tokens first** - Always get a token before attempting attestation
+3. **Plan commit ranges** - Decide what to reveal/hide before attestation
+4. **Handle timeouts** - Some APIs are slow, configure appropriate timeout
+5. **Check balance** - Ensure sufficient DEM for storage fees
 
-## Lifecycle
+## Complete Browser Example
 
-```typescript
-// Recommended pattern
-const tlsn = new TLSNotary(config);
-
-try {
-  // Initialize (once)
-  await tlsn.initialize();
+```html
+<!DOCTYPE html>
+<html>
+<head>
+  <title>TLSNotary Example</title>
+</head>
+<body>
+  <button id="attest">Create Attestation</button>
+  <pre id="result"></pre>
   
-  // Multiple attestations
-  const proof1 = await tlsn.attestQuick({ url: url1 });
-  const proof2 = await tlsn.attestQuick({ url: url2 });
-  
-  // Verifications
-  const v1 = await tlsn.verify(proof1.presentation);
-  const v2 = await tlsn.verify(proof2.presentation);
-  
-} finally {
-  // Always cleanup
-  tlsn.destroy();
-}
+  <script type="module">
+    import { Demos } from "@kynesyslabs/demosdk/websdk";
+    import { TLSNotaryService } from "@kynesyslabs/demosdk/tlsnotary";
+    
+    document.getElementById("attest").onclick = async () => {
+      const demos = new Demos();
+      await demos.connect("https://demosnode.discus.sh/");
+      await demos.connectWallet(mnemonic);
+      
+      const service = new TLSNotaryService(demos);
+      
+      const token = await service.requestAttestation({
+        targetUrl: "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd",
+        method: "GET"
+      });
+      
+      const result = await service.attest(token, {
+        url: token.targetUrl,
+        method: "GET"
+      });
+      
+      document.getElementById("result").textContent = JSON.stringify(result, null, 2);
+    };
+  </script>
+</body>
+</html>
 ```
+
+## Important Notes
+
+> **Browser Only**: TLSNotary uses WebAssembly and cannot run in Node.js environments.
+
+> **Token Flow**: Always request an attestation token before calling attest().
+
+> **Storage Fees**: Storing proofs on-chain requires DEM tokens. Check balance first.

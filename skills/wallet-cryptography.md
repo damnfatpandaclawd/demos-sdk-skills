@@ -4,13 +4,14 @@ Learn to manage wallets, keys, and cryptographic operations.
 
 ## Overview
 
-The Demos SDK provides comprehensive cryptographic utilities:
+The Demos SDK provides cryptographic utilities:
 
 - **Key Generation** - Create new keypairs from seeds or randomly
-- **Key Storage** - Save/load keys with optional encryption
-- **Signing** - Sign messages and transactions
+- **Signing** - Sign messages and transactions (Ed25519)
 - **Verification** - Verify signatures
-- **Encryption** - RSA and Ed25519 operations
+- **Hashing** - SHA-256 hashing
+
+> **Note**: Some cryptographic functions require specific environments. Key storage functions work in Node.js, while some operations require browser environment.
 
 ## Key Generation
 
@@ -34,41 +35,9 @@ console.log("Private Key:", keypair.privateKey);  // Keep secret!
 const keypair = Cryptography.new();
 ```
 
-## Key Storage
-
-### Save to File (Hex Format)
-
-```typescript
-// Save as hex (unencrypted)
-await Cryptography.save(keypair, "./wallet.key", "hex");
-
-// Load back
-const loaded = await Cryptography.load("./wallet.key");
-```
-
-### Encrypted Storage
-
-```typescript
-// Save with password encryption
-await Cryptography.saveEncrypted(keypair, "./wallet.enc", "myPassword123");
-
-// Load with password
-const loaded = await Cryptography.loadEncrypted("./wallet.enc", "myPassword123");
-```
-
-### In-Memory Serialization
-
-```typescript
-// Convert to hex string (for storage)
-const hexKey = Cryptography.saveToHex(keypair.privateKey);
-
-// Load from hex
-const restored = Cryptography.loadFromHex(hexKey);
-```
-
 ## Message Signing
 
-### Basic Signing
+### Basic Signing (Ed25519)
 
 ```typescript
 const message = "Hello, Demos!";
@@ -81,34 +50,12 @@ const isValid = Cryptography.verify(message, signature, keypair.publicKey);
 console.log("Signature valid:", isValid);  // true
 ```
 
-### Ed25519 Signing
+### Ed25519 Explicit API
 
 ```typescript
-// Ed25519 is default and recommended
+// Ed25519 is the default signing algorithm
 const signature = Cryptography.ed25519.sign(message, keypair.privateKey);
 const isValid = Cryptography.ed25519.verify(message, signature, keypair.publicKey);
-```
-
-## Encryption (RSA)
-
-```typescript
-// Encrypt with public key (anyone can encrypt)
-const [success, encrypted] = Cryptography.rsa.encrypt(
-  "Secret message",
-  recipientPublicKey
-);
-
-if (!success) {
-  throw new Error("Encryption failed");
-}
-
-// Decrypt with private key (only recipient can decrypt)
-const [success2, decrypted] = Cryptography.rsa.decrypt(
-  encrypted,
-  recipientPrivateKey
-);
-
-console.log("Decrypted:", decrypted);  // "Secret message"
 ```
 
 ## Hashing
@@ -116,15 +63,12 @@ console.log("Decrypted:", decrypted);  // "Secret message"
 ```typescript
 import { Hashing } from "@kynesyslabs/demosdk/encryption";
 
-// SHA-256 hash
+// SHA-256 hash (primary supported hash function)
 const hash = Hashing.sha256("data to hash");
-
-// SHA-512 hash
-const hash512 = Hashing.sha512("data to hash");
-
-// Keccak-256 (Ethereum compatible)
-const keccak = Hashing.keccak256("data to hash");
+console.log("SHA-256:", hash);
 ```
+
+> **Note**: Only `sha256` is currently available in the SDK. Use external libraries for other hash functions if needed.
 
 ## Demos Wallet Connection
 
@@ -140,131 +84,29 @@ async function connectDemosWallet() {
     "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about"
   );
   
-  // Get wallet info
-  const address = demos.wallet.getAddress();
-  const publicKey = demos.wallet.getPublicKey();
+  // Get wallet info using Demos instance methods
+  const address = demos.getAddress();
+  const publicKey = demos.getPublicKey();
   
   console.log("Address:", address);
   console.log("Public Key:", publicKey);
   
-  // Sign a message
-  const signature = await demos.wallet.sign("Hello");
-  
-  return { address, publicKey, signature };
+  return demos;
 }
 ```
 
-## EVM Wallet Integration
+## Signing with Demos Wallet
 
 ```typescript
-import { EVM } from "@kynesyslabs/demosdk/xm-websdk";
-
-async function evmWalletOperations() {
-  const evm = await EVM.create("https://mainnet.base.org");
+async function signMessage(demos: Demos, message: string) {
+  // Sign using connected wallet
+  const signature = await demos.sign(message);
   
-  // Connect with private key or mnemonic
-  await evm.connectWallet(privateKeyOrMnemonic);
-  
-  // Get addresses
-  const address = evm.getAddress();
-  const publicKey = evm.getPublicKey();
-  
-  // Sign message
-  const signature = await evm.signMessage("Message to sign");
-  
-  // Verify message
-  const isValid = await evm.verifyMessage(
-    "Message to sign",
+  return {
+    message,
     signature,
-    publicKey
-  );
-  
-  await evm.disconnect();
-  return { address, publicKey, signature, isValid };
-}
-```
-
-## Unified Crypto Operations
-
-```typescript
-import { UnifiedCrypto } from "@kynesyslabs/demosdk/encryption";
-
-// Cross-platform signing
-const signature = await UnifiedCrypto.sign(message, privateKey);
-
-// Cross-platform verification
-const isValid = await UnifiedCrypto.verify(message, signature, publicKey);
-
-// Cross-platform encryption
-const encrypted = await UnifiedCrypto.encrypt(data, publicKey);
-const decrypted = await UnifiedCrypto.decrypt(encrypted, privateKey);
-```
-
-## Address Derivation
-
-### Multi-Account Support
-
-```typescript
-import { EVM } from "@kynesyslabs/demosdk/xm-websdk";
-
-async function deriveMultipleAccounts(mnemonic: string) {
-  const accounts = [];
-  
-  for (let i = 0; i < 5; i++) {
-    const evm = await EVM.create("https://eth.llamarpc.com");
-    await evm.connectWallet(mnemonic, i);  // Account index
-    
-    accounts.push({
-      index: i,
-      address: evm.getAddress()
-    });
-    
-    await evm.disconnect();
-  }
-  
-  return accounts;
-}
-```
-
-## Security Best Practices
-
-### Key Storage
-
-```typescript
-// ❌ BAD: Storing private key in plain text
-localStorage.setItem("privateKey", privateKey);
-
-// ✅ GOOD: Encrypted storage
-const encrypted = await encryptWithPassword(privateKey, userPassword);
-localStorage.setItem("encryptedKey", encrypted);
-
-// Even better: Use hardware wallets or secure enclaves
-```
-
-### Memory Security
-
-```typescript
-// Clear sensitive data from memory when done
-function clearSensitiveData(keypair: KeyPair) {
-  // Overwrite with zeros
-  if (keypair.privateKey instanceof Uint8Array) {
-    keypair.privateKey.fill(0);
-  }
-  // Set to null
-  keypair.privateKey = null;
-}
-```
-
-### Environment Variables
-
-```typescript
-// ❌ BAD: Hardcoded keys
-const privateKey = "0x1234...";
-
-// ✅ GOOD: Environment variables
-const privateKey = process.env.PRIVATE_KEY;
-if (!privateKey) {
-  throw new Error("PRIVATE_KEY not set");
+    address: demos.getAddress()
+  };
 }
 ```
 
@@ -273,6 +115,10 @@ if (!privateKey) {
 ### Sign-In With Demos (SIWD)
 
 ```typescript
+function generateNonce() {
+  return Math.random().toString(36).substring(2, 15);
+}
+
 async function signInWithDemos(demos: Demos, domain: string) {
   const nonce = generateNonce();
   const timestamp = Date.now();
@@ -281,10 +127,10 @@ async function signInWithDemos(demos: Demos, domain: string) {
 Nonce: ${nonce}
 Timestamp: ${timestamp}`;
   
-  const signature = await demos.wallet.sign(message);
+  const signature = await demos.sign(message);
   
   return {
-    address: demos.wallet.getAddress(),
+    address: demos.getAddress(),
     message,
     signature,
     nonce,
@@ -293,7 +139,7 @@ Timestamp: ${timestamp}`;
 }
 
 // Verify on server
-function verifySignIn(signInData: SignInData) {
+function verifySignIn(signInData: { message: string; signature: string; address: string; timestamp: number }) {
   const isValid = Cryptography.verify(
     signInData.message,
     signInData.signature,
@@ -306,49 +152,21 @@ function verifySignIn(signInData: SignInData) {
 }
 ```
 
-### Encrypted Messaging
+### Transaction Signing
 
 ```typescript
-async function sendEncryptedMessage(
-  senderPrivateKey: string,
-  recipientPublicKey: string,
-  message: string
-) {
-  // 1. Encrypt message
-  const [_, encrypted] = Cryptography.rsa.encrypt(message, recipientPublicKey);
+async function signTransaction(demos: Demos, txData: any) {
+  // Serialize transaction data
+  const txString = JSON.stringify(txData);
   
-  // 2. Sign the encrypted message
-  const signature = Cryptography.sign(encrypted, senderPrivateKey);
+  // Sign the serialized transaction
+  const signature = await demos.sign(txString);
   
   return {
-    encrypted,
+    tx: txData,
     signature,
-    sender: getPublicKey(senderPrivateKey)
+    signer: demos.getAddress()
   };
-}
-
-async function receiveEncryptedMessage(
-  recipientPrivateKey: string,
-  message: { encrypted: string; signature: string; sender: string }
-) {
-  // 1. Verify signature
-  const isValid = Cryptography.verify(
-    message.encrypted,
-    message.signature,
-    message.sender
-  );
-  
-  if (!isValid) {
-    throw new Error("Invalid signature");
-  }
-  
-  // 2. Decrypt
-  const [_, decrypted] = Cryptography.rsa.decrypt(
-    message.encrypted,
-    recipientPrivateKey
-  );
-  
-  return decrypted;
 }
 ```
 
@@ -360,10 +178,24 @@ try {
 } catch (error) {
   if (error.message.includes("Invalid private key")) {
     console.error("Private key format is incorrect");
-  } else if (error.message.includes("Key not found")) {
-    console.error("Key file does not exist");
-  } else if (error.message.includes("Wrong password")) {
-    console.error("Decryption password is incorrect");
+  } else if (error.message.includes("Invalid seed")) {
+    console.error("Mnemonic phrase is invalid");
   }
 }
 ```
+
+## Security Best Practices
+
+1. **Never expose private keys** - Keep them in secure storage
+2. **Use environment variables** - Store mnemonics in env vars, not code
+3. **Verify signatures** - Always verify before trusting signed data
+4. **Check timestamps** - Prevent replay attacks with timestamp verification
+5. **Use HTTPS** - All network operations should use secure connections
+
+## Important Notes
+
+> **ESM Required**: Use `.mjs` files or add `"type": "module"` to your package.json.
+
+> **Wallet Methods**: Use `demos.getAddress()`, `demos.getPublicKey()`, and `demos.sign()` directly on the Demos instance.
+
+> **Hashing**: Only `Hashing.sha256()` is available. For other hash functions, use external libraries like `crypto` or `ethers`.

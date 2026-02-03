@@ -38,13 +38,32 @@ async function makeAttestedRequest(
     body: body || ""
   });
   
-  // 4. Response includes attestation
+  // 4. Parse the response data (returned as string)
+  const data = JSON.parse(response.data);
+  
+  // 5. Response includes attestation hashes
   return {
-    data: response.data,
-    attestation: response.attestation,
-    timestamp: response.timestamp,
-    nodeSignature: response.signature
+    data,
+    status: response.status,
+    responseHash: response.responseHash,
+    txHash: response.txHash
   };
+}
+```
+
+## Response Structure
+
+> **Important**: The response `data` field is a **string** that must be parsed with `JSON.parse()`.
+
+```typescript
+interface IWeb2Result {
+  status: number;              // HTTP status code (200, 404, etc.)
+  statusText: string;          // HTTP status text ("OK", "Not Found", etc.)
+  headers: Record<string, string>;  // Response headers
+  data: string;                // Response body as STRING - must JSON.parse()
+  responseHash: string;        // Hash of response for verification
+  responseHeadersHash: string; // Hash of response headers
+  txHash: string;              // Transaction hash on Demos network
 }
 ```
 
@@ -69,16 +88,20 @@ async function getAttestedPrice(symbol: string) {
     headers: { "Accept": "application/json" }
   });
   
+  // Parse the string response
+  const data = JSON.parse(response.data);
+  
   return {
-    price: response.data[symbol]?.usd,
-    attestation: response.attestation,
+    price: data[symbol]?.usd,
+    responseHash: response.responseHash,
+    txHash: response.txHash,
     verifiable: true
   };
 }
 
 // Usage
 const btcPrice = await getAttestedPrice("bitcoin");
-console.log(`BTC: $${btcPrice.price} (attested)`);
+console.log(`BTC: $${btcPrice.price} (attested: ${btcPrice.txHash})`);
 ```
 
 ### 2. Social Proof Verification
@@ -102,9 +125,13 @@ async function verifyTwitterFollowers(username: string, apiKey: string) {
     }
   });
   
+  // Parse the string response
+  const data = JSON.parse(response.data);
+  
   return {
-    followers: response.data.data?.public_metrics?.followers_count,
-    attestation: response.attestation
+    followers: data.data?.public_metrics?.followers_count,
+    responseHash: response.responseHash,
+    txHash: response.txHash
   };
 }
 ```
@@ -114,7 +141,8 @@ async function verifyTwitterFollowers(username: string, apiKey: string) {
 ```typescript
 interface AttestedCache {
   data: any;
-  attestation: string;
+  responseHash: string;
+  txHash: string;
   timestamp: number;
   expiresAt: number;
 }
@@ -134,9 +162,13 @@ async function cachedAttestedFetch(url: string, ttlMs: number = 60000) {
   const dahr = await demos.web2.createDahr();
   const response = await dahr.startProxy({ url, method: "GET" });
   
+  // Parse the string response
+  const data = JSON.parse(response.data);
+  
   const result: AttestedCache = {
-    data: response.data,
-    attestation: response.attestation,
+    data,
+    responseHash: response.responseHash,
+    txHash: response.txHash,
     timestamp: Date.now(),
     expiresAt: Date.now() + ttlMs
   };
@@ -146,43 +178,26 @@ async function cachedAttestedFetch(url: string, ttlMs: number = 60000) {
 }
 ```
 
-## Response Structure
-
-```typescript
-interface IWeb2Result {
-  success: boolean;
-  data: any;              // Parsed response body
-  statusCode: number;     // HTTP status code
-  headers: Record<string, string>;
-  attestation: {
-    nodeId: string;       // Demos node that made request
-    signature: string;    // Cryptographic signature
-    timestamp: number;    // When request was made
-    requestHash: string;  // Hash of original request
-    responseHash: string; // Hash of response
-  };
-}
-```
-
 ## Verifying Attestations
 
-```typescript
-import { verifyAttestation } from "@kynesyslabs/demosdk/websdk";
+Attestation verification is done by checking the `responseHash` and `txHash` against the Demos network:
 
-async function verifyDAHRResponse(response: IWeb2Result) {
-  const isValid = await verifyAttestation({
-    nodeId: response.attestation.nodeId,
-    signature: response.attestation.signature,
-    requestHash: response.attestation.requestHash,
-    responseHash: response.attestation.responseHash,
-    data: response.data
-  });
+```typescript
+async function verifyDAHRResponse(response: IWeb2Result, demos: Demos) {
+  // The txHash can be looked up on the Demos network
+  // to verify the attestation was recorded
+  const tx = await demos.getTransaction(response.txHash);
   
-  if (!isValid) {
-    throw new Error("Attestation verification failed");
+  if (!tx) {
+    throw new Error("Attestation transaction not found");
   }
   
-  return response.data;
+  // Verify the response hash matches
+  if (tx.responseHash !== response.responseHash) {
+    throw new Error("Response hash mismatch");
+  }
+  
+  return JSON.parse(response.data);
 }
 ```
 
@@ -217,18 +232,18 @@ try {
   const dahr = await demos.web2.createDahr();
   const response = await dahr.startProxy({ url, method: "GET" });
   
-  if (!response.success) {
-    throw new Error(`HTTP ${response.statusCode}: Request failed`);
+  // Check HTTP status code
+  if (response.status >= 400) {
+    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
   }
   
-  return response.data;
+  // Parse and return data
+  return JSON.parse(response.data);
 } catch (error) {
   if (error.code === "DAHR_TIMEOUT") {
     console.error("Request timed out");
   } else if (error.code === "DAHR_UNREACHABLE") {
     console.error("Target URL unreachable");
-  } else if (error.code === "ATTESTATION_FAILED") {
-    console.error("Node failed to attest response");
   }
   throw error;
 }
@@ -250,12 +265,12 @@ try {
 DAHR can be used as a step in DemosWork workflows:
 
 ```typescript
-import { DemosWork, Web2WorkStep } from "@kynesyslabs/demosdk/demoswork";
+import { DemosWork, WorkStep, BaseOperation } from "@kynesyslabs/demosdk/demoswork";
 
 const work = new DemosWork();
 
 // Add DAHR step to workflow
-const priceStep = new Web2WorkStep({
+const priceStep = new WorkStep({
   context: "web2",
   content: {
     url: "https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=usd",
@@ -267,3 +282,9 @@ const priceStep = new Web2WorkStep({
 
 work.push(new BaseOperation(priceStep));
 ```
+
+## Important Notes
+
+> **ESM Required**: Use `.mjs` files or add `"type": "module"` to your package.json.
+
+> **Response Parsing**: Always use `JSON.parse(response.data)` - the data field is a string, not an object.
