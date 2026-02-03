@@ -1,5 +1,7 @@
 # DemosWork Agent Pipelines
 
+> **⚠️ Prerequisites**: Complete [SDK Setup](./00-sdk-setup.md) first to configure your environment.
+
 Build intelligent agent workflows with multi-step operations, conditionals, cross-chain actions, and Web2 integrations using DemosWork scripting engine.
 
 ## Agent Use Cases

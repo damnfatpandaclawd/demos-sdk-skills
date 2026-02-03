@@ -1,5 +1,7 @@
 # Smart Contract Interaction
 
+> **⚠️ Prerequisites**: Complete [SDK Setup](./00-sdk-setup.md) first to configure your environment.
+
 Learn to read from and write to smart contracts on EVM chains.
 
 ## Overview

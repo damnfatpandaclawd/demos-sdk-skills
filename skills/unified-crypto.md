@@ -1,5 +1,7 @@
 # UnifiedCrypto - Multi-Algorithm Cryptography
 
+> **⚠️ Prerequisites**: Complete [SDK Setup](./00-sdk-setup.md) first to configure your environment.
+
 Unified interface for both classical (RSA, Ed25519) and post-quantum (ML-KEM, ML-DSA, Falcon) cryptographic operations.
 
 ## Overview

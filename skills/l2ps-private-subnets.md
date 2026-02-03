@@ -1,5 +1,7 @@
 # L2PS - Layer 2 Private Subnets
 
+> **⚠️ Prerequisites**: Complete [SDK Setup](./00-sdk-setup.md) first to configure your environment.
+
 Private encrypted transaction processing using AES-GCM encryption within the Demos Network.
 
 ## Overview

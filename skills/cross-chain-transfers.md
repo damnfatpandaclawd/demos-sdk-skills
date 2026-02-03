@@ -1,5 +1,7 @@
 # Cross-Chain Transfers with XM SDK
 
+> **⚠️ Prerequisites**: Complete [SDK Setup](./00-sdk-setup.md) first to configure your environment.
+
 Learn to perform cross-chain token transfers using the Demos XM SDK.
 
 ## Overview

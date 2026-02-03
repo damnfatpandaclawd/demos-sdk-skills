@@ -1,5 +1,7 @@
 # Cross-Chain Bridges & Swaps
 
+> **⚠️ Prerequisites**: Complete [SDK Setup](./00-sdk-setup.md) first to configure your environment.
+
 Learn to perform cross-chain swaps using the Demos Bridge module (powered by Rubic).
 
 ## What is the Bridge Module?

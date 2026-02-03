@@ -1,5 +1,7 @@
 # DAHR: Attested HTTP Requests
 
+> **⚠️ Prerequisites**: Complete [SDK Setup](./00-sdk-setup.md) first to configure your environment.
+
 Learn to make verifiable Web2 API calls using Demos DAHR (Demos Attested HTTP Requests).
 
 ## What is DAHR?

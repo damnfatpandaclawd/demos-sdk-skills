@@ -1,5 +1,7 @@
 # PQC Enigma - Post-Quantum Cryptography
 
+> **⚠️ Prerequisites**: Complete [SDK Setup](./00-sdk-setup.md) first to configure your environment.
+
 Quantum-resistant cryptographic operations using ML-KEM, ML-DSA, and Falcon algorithms.
 
 ## Overview

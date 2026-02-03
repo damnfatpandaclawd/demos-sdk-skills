@@ -1,5 +1,7 @@
 # DemosWork: Multi-Step Workflows
 
+> **⚠️ Prerequisites**: Complete [SDK Setup](./00-sdk-setup.md) first to configure your environment.
+
 Learn to create complex, multi-step operations using DemosWork.
 
 ## What is DemosWork?

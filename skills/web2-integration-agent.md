@@ -1,5 +1,7 @@
 # Web2 Integration Agent
 
+> **⚠️ Prerequisites**: Complete [SDK Setup](./00-sdk-setup.md) first to configure your environment.
+
 Build autonomous agents that interact with Web2 APIs through Demos DAHR (Decentralized Attested HTTP Requests) proxy for verifiable off-chain data access.
 
 ## Agent Use Cases

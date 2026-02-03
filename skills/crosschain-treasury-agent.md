@@ -1,5 +1,7 @@
 # Cross-Chain Treasury Agent
 
+> **⚠️ Prerequisites**: Complete [SDK Setup](./00-sdk-setup.md) first to configure your environment.
+
 Build autonomous treasury management agents that move assets across chains using Demos Native Bridge and Rubic aggregator with gasless meta-transactions.
 
 ## Agent Use Cases

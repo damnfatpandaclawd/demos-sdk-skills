@@ -1,5 +1,7 @@
 # Wallet & Cryptography
 
+> **⚠️ Prerequisites**: Complete [SDK Setup](./00-sdk-setup.md) first to configure your environment.
+
 Learn to manage wallets, keys, and cryptographic operations.
 
 ## Overview

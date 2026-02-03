@@ -1,5 +1,7 @@
 # CCI: Cross-Context Identity
 
+> **⚠️ Prerequisites**: Complete [SDK Setup](./00-sdk-setup.md) first to configure your environment.
+
 > ⚠️ **Coming Soon**: The identity linking APIs (`demos.identity.*`) are planned but not yet available in SDK v2.9.x. This skill documents the expected patterns for when the feature is released.
 
 ## What is CCI?

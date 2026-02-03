@@ -1,5 +1,7 @@
 # TLSNotary Oracle Agent
 
+> **⚠️ Prerequisites**: Complete [SDK Setup](./00-sdk-setup.md) first to configure your environment.
+
 Build autonomous oracle agents that fetch, attest, and provide verifiable Web2 data on-chain using MPC-TLS cryptographic proofs.
 
 ## Agent Use Cases

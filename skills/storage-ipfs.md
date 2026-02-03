@@ -1,5 +1,7 @@
 # Storage & IPFS
 
+> **⚠️ Prerequisites**: Complete [SDK Setup](./00-sdk-setup.md) first to configure your environment.
+
 On-chain storage programs and decentralized file storage via IPFS integration.
 
 ## Overview

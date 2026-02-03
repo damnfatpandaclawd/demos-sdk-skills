@@ -1,5 +1,7 @@
 # TLSNotary: Browser-Based HTTPS Attestation
 
+> **⚠️ Prerequisites**: Complete [SDK Setup](./00-sdk-setup.md) first to configure your environment.
+
 Learn to create cryptographic proofs of HTTPS requests using MPC-TLS.
 
 > **Browser Only**: TLSNotary requires a browser environment with WebAssembly (WASM) support. It cannot run in Node.js.
