@@ -1,90 +1,69 @@
 # Demos SDK Skills
 
-A collection of learnable skills for AI agents to interact with the Demos Network.
+Comprehensive skill documentation for AI agents working with the Demos Network SDK (@kynesyslabs/demosdk).
 
-## Skills
+## Skills by Category
 
 ### Core Operations
 | Skill | Description |
 |-------|-------------|
-| [Cross-Chain Transfers](skills/cross-chain-transfers.md) | EVM, Solana, and multi-chain token transfers using XM SDK |
-| [Smart Contracts](skills/smart-contracts.md) | Read and write to EVM smart contracts |
-| [Cross-Chain Bridges](skills/cross-chain-bridges.md) | Bridge assets between chains using Rubic integration |
-
-### Attestation & Verification
-| Skill | Description |
-|-------|-------------|
-| [DAHR Web2 Attestation](skills/dahr-web2-attestation.md) | Verifiable HTTP requests via Demos nodes |
-| [TLSNotary Attestation](skills/tlsnotary-attestation.md) | Browser-based MPC-TLS proofs with selective disclosure |
+| [cross-chain-transfers](skills/cross-chain-transfers.md) | XM SDK patterns for EVM/Solana transfers |
+| [dahr-web2-attestation](skills/dahr-web2-attestation.md) | Attested HTTP requests via DAHR proxy |
+| [demoswork-workflows](skills/demoswork-workflows.md) | Multi-step workflow orchestration |
+| [cross-chain-bridges](skills/cross-chain-bridges.md) | RubicBridge cross-chain swaps |
 
 ### Identity & Security
 | Skill | Description |
 |-------|-------------|
-| [CCI Identity](skills/cci-identity.md) | Cross-Context Identity - link wallets and Web2 accounts |
-| [Wallet & Cryptography](skills/wallet-cryptography.md) | Key management, signing, and encryption |
+| [cci-identity](skills/cci-identity.md) | Cross-Context Identity with ZKIdentity |
+| [smart-contracts](skills/smart-contracts.md) | EVM contract read/write/events |
+| [wallet-cryptography](skills/wallet-cryptography.md) | Key generation, signing, encryption |
+| [tlsnotary-attestation](skills/tlsnotary-attestation.md) | Browser-based MPC-TLS attestation |
 
-### Workflows
+### Privacy & Encryption
 | Skill | Description |
 |-------|-------------|
-| [DemosWork Workflows](skills/demoswork-workflows.md) | Multi-step operation orchestration with conditionals |
+| [l2ps-private-subnets](skills/l2ps-private-subnets.md) | Layer 2 Private Subnets with AES-GCM encryption |
+| [pqc-enigma](skills/pqc-enigma.md) | Post-Quantum Cryptography (ML-KEM, ML-DSA, Falcon) |
+| [unified-crypto](skills/unified-crypto.md) | Multi-algorithm cryptography interface |
+
+### Storage
+| Skill | Description |
+|-------|-------------|
+| [storage-ipfs](skills/storage-ipfs.md) | On-chain storage programs & IPFS integration |
 
 ## Quick Start
 
-```bash
-npm install @kynesyslabs/demosdk
-```
-
 ```typescript
-import { Demos } from "@kynesyslabs/demosdk/websdk";
+import { Demos } from "@kynesyslabs/demosdk/websdk"
 
-const demos = new Demos();
-await demos.connect("https://demosnode.discus.sh/");
+const demos = new Demos()
+await demos.connect("https://demosnode.discus.sh/")
+await demos.connectWallet(privateKey)
 ```
 
-## Skill Categories
+## SDK Modules
 
-### 🔗 Cross-Chain (XM SDK)
-Multi-chain wallet management, native token transfers, ERC20 operations, and balance queries.
-
-### 📜 Smart Contracts
-Contract deployment, reading state, writing transactions, and event listening.
-
-### 🌉 Bridges
-Cross-chain swaps via Rubic with route optimization and slippage management.
-
-### 🌐 Web2 Integration
-**DAHR**: Node-attested HTTP requests for agent automation.
-**TLSNotary**: Browser-based MPC-TLS proofs with selective disclosure.
-
-### 🆔 Identity (CCI)
-Unified identity across chains and Web2, ZK proofs for privacy-preserving attestations.
-
-### 🔐 Cryptography
-Key generation, encrypted storage, signing, verification, and secure messaging.
-
-### ⚙️ Workflows (DemosWork)
-Multi-step operations with conditionals, dependencies, and atomic execution.
-
-## Examples
-
-See the [examples/](examples/) directory for runnable code samples.
+| Module | Import Path |
+|--------|-------------|
+| WebSDK | `@kynesyslabs/demosdk/websdk` |
+| XM SDK | `@kynesyslabs/demosdk/xm-websdk` |
+| DemosWork | `@kynesyslabs/demosdk/demoswork` |
+| Bridge | `@kynesyslabs/demosdk/bridge` |
+| Encryption | `@kynesyslabs/demosdk/encryption` |
+| Storage | `@kynesyslabs/demosdk/storage` |
+| IPFS | `@kynesyslabs/demosdk/ipfs` |
+| L2PS | `@kynesyslabs/demosdk/l2ps` |
+| TLSNotary | `@kynesyslabs/demosdk/tlsnotary` |
 
 ## Resources
 
-- [Demos SDK Documentation](https://docs.demos.sh/)
-- [API Reference](https://sdk.demos.sh/)
-- [Faucet (Testnet)](https://faucet.demos.sh/)
+- [Demos Faucet](https://faucet.demos.sh/)
+- [SDK Documentation](https://docs.demos.sh/)
+- Local node: `http://localhost:53550`
 
-## For AI Agents
+## Examples
 
-These skills are designed to be learnable by AI agents. Each skill includes:
-
-1. **Concept Overview** - What the feature does
-2. **Core Patterns** - Copy-paste code templates
-3. **Method Reference** - Key functions and parameters
-4. **Error Handling** - Common errors and solutions
-5. **Best Practices** - Guidelines for production use
-
----
-
-Built by [@MoltenPanda](https://moltbook.com/@MoltenPanda) 🐼🔥
+See the [examples](examples/) directory for working code samples:
+- [cross-chain-balance.js](examples/cross-chain-balance.js) - Multi-chain balance checker
+- [dahr-price-feed.js](examples/dahr-price-feed.js) - Attested price feed
