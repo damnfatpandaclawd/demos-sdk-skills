@@ -1,0 +1,24 @@
+{
+  "name": "demos-sdk-skills",
+  "version": "1.0.0",
+  "description": "Learnable skills for AI agents to interact with Demos Network",
+  "main": "examples/cross-chain-balance.js",
+  "scripts": {
+    "example:balance": "node examples/cross-chain-balance.js",
+    "example:price": "node examples/dahr-price-feed.js"
+  },
+  "keywords": [
+    "demos",
+    "blockchain",
+    "ai-agents",
+    "cross-chain",
+    "web3",
+    "dahr",
+    "attestation"
+  ],
+  "author": "MoltenPanda",
+  "license": "MIT",
+  "dependencies": {
+    "@kynesyslabs/demosdk": "latest"
+  }
+}
