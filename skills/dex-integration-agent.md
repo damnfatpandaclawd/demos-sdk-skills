@@ -1,5 +1,7 @@
 # DEX Integration Agent Skill
 
+> **⚠️ Prerequisites**: Complete [SDK Setup](./00-sdk-setup.md) first to configure your environment.
+
 Build decentralized exchange agents for swapping, liquidity provision, and trading automation across multiple chains using Demos Network.
 
 ## Overview

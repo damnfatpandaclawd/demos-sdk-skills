@@ -1,5 +1,7 @@
 # FHE Computation Agent
 
+> **⚠️ Prerequisites**: Complete [SDK Setup](./00-sdk-setup.md) first to configure your environment.
+
 Build agents that perform computations on encrypted data using Fully Homomorphic Encryption (FHE) through the Demos Network.
 
 ## SDK Reference

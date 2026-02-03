@@ -1,5 +1,7 @@
 # L2PS Private Subnet Agent Skill
 
+> **⚠️ Prerequisites**: Complete [SDK Setup](./00-sdk-setup.md) first to configure your environment.
+
 Build agents that operate within Layer 2 Private Subnets for confidential transaction processing on Demos Network.
 
 ## Overview

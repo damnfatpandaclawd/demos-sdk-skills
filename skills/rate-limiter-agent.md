@@ -1,5 +1,7 @@
 # Rate Limiter Agent Skill
 
+> **⚠️ Prerequisites**: Complete [SDK Setup](./00-sdk-setup.md) first to configure your environment.
+
 Build agents that implement rate limiting for API protection and resource management.
 
 ## Overview

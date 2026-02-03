@@ -1,5 +1,7 @@
 # Options Agent Skill
 
+> **⚠️ Prerequisites**: Complete [SDK Setup](./00-sdk-setup.md) first to configure your environment.
+
 Build agents that trade and manage on-chain options contracts.
 
 ## Overview

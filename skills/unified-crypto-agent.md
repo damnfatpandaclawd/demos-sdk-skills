@@ -1,5 +1,7 @@
 # Unified Crypto Agent
 
+> **⚠️ Prerequisites**: Complete [SDK Setup](./00-sdk-setup.md) first to configure your environment.
+
 Build agents with comprehensive cryptographic capabilities including PQC, RSA, Ed25519, and FHE through a unified interface.
 
 ## SDK Reference

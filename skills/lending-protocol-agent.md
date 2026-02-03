@@ -1,5 +1,7 @@
 # Lending Protocol Agent Skill
 
+> **⚠️ Prerequisites**: Complete [SDK Setup](./00-sdk-setup.md) first to configure your environment.
+
 Build agents that interact with DeFi lending protocols for supply, borrow, and liquidation operations.
 
 ## Overview

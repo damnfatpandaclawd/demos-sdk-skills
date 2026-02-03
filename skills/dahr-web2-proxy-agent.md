@@ -1,5 +1,7 @@
 # DAHR Web2 Proxy Agent Skill
 
+> **⚠️ Prerequisites**: Complete [SDK Setup](./00-sdk-setup.md) first to configure your environment.
+
 Build agents that access Web2 APIs through Demos Network's attested HTTP proxy for verifiable external data.
 
 ## Overview

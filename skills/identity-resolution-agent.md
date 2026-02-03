@@ -1,5 +1,7 @@
 # Identity Resolution Agent Skill
 
+> **⚠️ Prerequisites**: Complete [SDK Setup](./00-sdk-setup.md) first to configure your environment.
+
 Build cross-context identity agents using Demos CCI (Cross-Context Identity) for unified identity resolution across Web2, Web3, and social platforms.
 
 ## Overview

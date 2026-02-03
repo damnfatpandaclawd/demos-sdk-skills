@@ -1,5 +1,7 @@
 # Scheduler Agent Skill
 
+> **⚠️ Prerequisites**: Complete [SDK Setup](./00-sdk-setup.md) first to configure your environment.
+
 Build agents that execute tasks on schedules and manage recurring operations.
 
 ## Overview

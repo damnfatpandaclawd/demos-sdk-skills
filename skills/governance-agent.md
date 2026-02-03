@@ -1,5 +1,7 @@
 # Governance Agent Skill
 
+> **⚠️ Prerequisites**: Complete [SDK Setup](./00-sdk-setup.md) first to configure your environment.
+
 Build DAO governance agents for voting, proposal creation, and delegation management across multiple governance protocols using Demos Network.
 
 ## Overview

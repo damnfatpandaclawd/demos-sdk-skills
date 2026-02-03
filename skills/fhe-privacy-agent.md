@@ -1,5 +1,7 @@
 # FHE Privacy Agent Skill
 
+> **⚠️ Prerequisites**: Complete [SDK Setup](./00-sdk-setup.md) first to configure your environment.
+
 Build privacy-preserving computation agents using Fully Homomorphic Encryption (FHE) on Demos Network.
 
 ## Overview

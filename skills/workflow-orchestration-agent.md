@@ -1,5 +1,7 @@
 # Workflow Orchestration Agent
 
+> **⚠️ Prerequisites**: Complete [SDK Setup](./00-sdk-setup.md) first to configure your environment.
+
 Build agents that orchestrate complex multi-step workflows using DemosWork's conditional execution engine.
 
 ## SDK Reference

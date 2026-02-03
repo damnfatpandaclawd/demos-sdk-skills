@@ -1,5 +1,7 @@
 # Limit Order Agent Skill
 
+> **⚠️ Prerequisites**: Complete [SDK Setup](./00-sdk-setup.md) first to configure your environment.
+
 Build agents that manage and execute limit orders across DEXs.
 
 ## Overview

@@ -1,5 +1,7 @@
 # Storage Program Agent Skill
 
+> **⚠️ Prerequisites**: Complete [SDK Setup](./00-sdk-setup.md) first to configure your environment.
+
 Build agents that store and retrieve data on Demos Network with robust access control and pricing.
 
 ## Overview

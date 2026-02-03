@@ -1,5 +1,7 @@
 # Leverage Agent Skill
 
+> **⚠️ Prerequisites**: Complete [SDK Setup](./00-sdk-setup.md) first to configure your environment.
+
 Build agents that manage leveraged positions across DeFi protocols.
 
 ## Overview

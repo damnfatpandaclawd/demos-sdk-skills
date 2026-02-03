@@ -1,5 +1,7 @@
 # NEAR Operations Agent
 
+> **⚠️ Prerequisites**: Complete [SDK Setup](./00-sdk-setup.md) first to configure your environment.
+
 Build agents that interact with the NEAR Protocol blockchain through the Demos Network XM SDK.
 
 ## SDK Reference

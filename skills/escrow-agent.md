@@ -1,5 +1,7 @@
 # Escrow Agent
 
+> **⚠️ Prerequisites**: Complete [SDK Setup](./00-sdk-setup.md) first to configure your environment.
+
 Build agents that manage trustless escrow transactions on the Demos Network using the escrow module.
 
 ## SDK Reference

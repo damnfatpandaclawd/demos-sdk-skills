@@ -1,5 +1,7 @@
 # Cross-Chain Bridge Agent
 
+> **⚠️ Prerequisites**: Complete [SDK Setup](./00-sdk-setup.md) first to configure your environment.
+
 Build agents that perform gasless cross-chain asset transfers using Demos Network's native bridge and Rubic integration.
 
 ## SDK Reference

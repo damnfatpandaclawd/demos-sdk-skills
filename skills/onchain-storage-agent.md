@@ -1,5 +1,7 @@
 # On-Chain Storage Agent
 
+> **⚠️ Prerequisites**: Complete [SDK Setup](./00-sdk-setup.md) first to configure your environment.
+
 Build agents that store and manage persistent data on the Demos Network using StorageProgram with robust access control.
 
 ## SDK Reference

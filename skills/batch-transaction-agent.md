@@ -1,5 +1,7 @@
 # Batch Transaction Agent Skill
 
+> **⚠️ Prerequisites**: Complete [SDK Setup](./00-sdk-setup.md) first to configure your environment.
+
 Build agents that efficiently process multiple transactions in optimized batches on Demos Network.
 
 ## Overview

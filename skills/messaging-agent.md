@@ -1,5 +1,7 @@
 # Instant Messaging Agent Skill
 
+> **⚠️ Prerequisites**: Complete [SDK Setup](./00-sdk-setup.md) first to configure your environment.
+
 Build peer-to-peer messaging agents using Demos Network's encrypted messaging infrastructure for secure, decentralized communication.
 
 ## Overview

@@ -1,5 +1,7 @@
 # NFT Operations Agent Skill
 
+> **⚠️ Prerequisites**: Complete [SDK Setup](./00-sdk-setup.md) first to configure your environment.
+
 Build NFT management agents for minting, trading, and portfolio management across EVM and Solana chains using Demos Network.
 
 ## Overview

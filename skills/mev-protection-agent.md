@@ -1,5 +1,7 @@
 # MEV Protection Agent Skill
 
+> **⚠️ Prerequisites**: Complete [SDK Setup](./00-sdk-setup.md) first to configure your environment.
+
 Build agents that protect transactions from MEV extraction and front-running.
 
 ## Overview

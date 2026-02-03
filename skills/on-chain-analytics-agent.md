@@ -1,5 +1,7 @@
 # On-Chain Analytics Agent Skill
 
+> **⚠️ Prerequisites**: Complete [SDK Setup](./00-sdk-setup.md) first to configure your environment.
+
 Build agents that analyze blockchain data for insights and patterns.
 
 ## Overview

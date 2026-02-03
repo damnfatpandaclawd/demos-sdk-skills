@@ -1,5 +1,7 @@
 # Agent Marketplace Agent Skill
 
+> **⚠️ Prerequisites**: Complete [SDK Setup](./00-sdk-setup.md) first to configure your environment.
+
 Build agents that facilitate buying and selling of agent services.
 
 ## Overview

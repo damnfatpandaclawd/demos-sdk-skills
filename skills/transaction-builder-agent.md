@@ -1,5 +1,7 @@
 # Transaction Builder Agent Skill
 
+> **⚠️ Prerequisites**: Complete [SDK Setup](./00-sdk-setup.md) first to configure your environment.
+
 Build sophisticated transaction construction agents using Demos Network's transaction payload preparation and cross-chain execution capabilities.
 
 ## Overview

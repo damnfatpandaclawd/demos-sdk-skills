@@ -1,5 +1,7 @@
 # Social Identity Verification Agent Skill
 
+> **⚠️ Prerequisites**: Complete [SDK Setup](./00-sdk-setup.md) first to configure your environment.
+
 Build agents that verify and manage social identities across Web2 platforms using Demos Network's identity proofs.
 
 ## Overview

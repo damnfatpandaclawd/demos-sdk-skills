@@ -1,5 +1,7 @@
 # Compliance Monitoring Agent Skill
 
+> **⚠️ Prerequisites**: Complete [SDK Setup](./00-sdk-setup.md) first to configure your environment.
+
 Build agents that monitor transactions for regulatory compliance and AML/KYC requirements.
 
 ## Overview

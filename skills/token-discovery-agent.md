@@ -1,5 +1,7 @@
 # Multi-Chain Token Discovery Agent Skill
 
+> **⚠️ Prerequisites**: Complete [SDK Setup](./00-sdk-setup.md) first to configure your environment.
+
 Build agents that discover and track tokens across multiple EVM chains using Demos Network's abstraction layer.
 
 ## Overview

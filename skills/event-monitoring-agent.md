@@ -1,5 +1,7 @@
 # Event Monitoring Agent Skill
 
+> **⚠️ Prerequisites**: Complete [SDK Setup](./00-sdk-setup.md) first to configure your environment.
+
 Build real-time event monitoring agents that watch blockchain events, price movements, and system state changes on Demos Network and connected chains.
 
 ## Overview

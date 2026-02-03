@@ -1,5 +1,7 @@
 # Data Indexing Agent Skill
 
+> **⚠️ Prerequisites**: Complete [SDK Setup](./00-sdk-setup.md) first to configure your environment.
+
 Build blockchain data indexing agents for querying, aggregating, and analyzing on-chain data across Demos Network and connected chains.
 
 ## Overview

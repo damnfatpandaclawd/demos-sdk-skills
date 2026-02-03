@@ -1,5 +1,7 @@
 # Order Book Agent Skill
 
+> **⚠️ Prerequisites**: Complete [SDK Setup](./00-sdk-setup.md) first to configure your environment.
+
 Build agents that manage and analyze order book data for trading decisions.
 
 ## Overview

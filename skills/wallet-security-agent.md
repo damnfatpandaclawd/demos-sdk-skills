@@ -1,5 +1,7 @@
 # Wallet Security Agent Skill
 
+> **⚠️ Prerequisites**: Complete [SDK Setup](./00-sdk-setup.md) first to configure your environment.
+
 Build security-focused wallet agents using Demos Network's UnifiedCrypto with post-quantum cryptography (PQC) support.
 
 ## Overview

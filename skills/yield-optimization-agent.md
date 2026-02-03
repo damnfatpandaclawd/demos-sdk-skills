@@ -1,5 +1,7 @@
 # Yield Optimization Agent Skill
 
+> **⚠️ Prerequisites**: Complete [SDK Setup](./00-sdk-setup.md) first to configure your environment.
+
 Build agents that automatically find and optimize yield across DeFi protocols on Demos Network.
 
 ## Overview

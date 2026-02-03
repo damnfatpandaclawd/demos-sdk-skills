@@ -1,5 +1,7 @@
 # Fee Estimation Agent Skill
 
+> **⚠️ Prerequisites**: Complete [SDK Setup](./00-sdk-setup.md) first to configure your environment.
+
 Build agents that accurately estimate transaction fees and optimize gas usage on Demos Network.
 
 ## Overview

@@ -1,5 +1,7 @@
 # ZK Interactive Proofs Agent Skill
 
+> **⚠️ Prerequisites**: Complete [SDK Setup](./00-sdk-setup.md) first to configure your environment.
+
 Build zero-knowledge proof agents using the interactive Prover/Verifier protocol on Demos Network.
 
 ## Overview

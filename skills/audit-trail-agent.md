@@ -1,5 +1,7 @@
 # Audit Trail Agent Skill
 
+> **⚠️ Prerequisites**: Complete [SDK Setup](./00-sdk-setup.md) first to configure your environment.
+
 Build agents that maintain immutable audit logs for compliance and forensics.
 
 ## Overview

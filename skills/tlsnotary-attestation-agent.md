@@ -1,5 +1,7 @@
 # TLSNotary Attestation Agent
 
+> **⚠️ Prerequisites**: Complete [SDK Setup](./00-sdk-setup.md) first to configure your environment.
+
 Build agents that create cryptographic proofs of web data using TLSNotary's MPC-TLS protocol on Demos Network.
 
 ## SDK Reference

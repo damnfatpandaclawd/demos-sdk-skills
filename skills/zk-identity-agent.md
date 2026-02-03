@@ -1,5 +1,7 @@
 # ZK Identity Agent
 
+> **⚠️ Prerequisites**: Complete [SDK Setup](./00-sdk-setup.md) first to configure your environment.
+
 Build agents that leverage zero-knowledge proofs for privacy-preserving identity verification through the Demos Network.
 
 ## SDK Reference
